@@ -1,0 +1,34 @@
+<head>
+	<!-- I believe this is being served up by the npm package automagically --> 
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+</head>
+<body>
+
+	<p id='data'></p>
+
+
+	<script>
+	  $(function () {
+	    var socket = io();
+
+	    // send mouse location to server
+	    $('html').mousemove(function(event){
+	    	let data = {
+	    		x: event.pageX,
+	    		y: event.pageY
+	    	};
+
+	    	console.log(data);
+
+
+	      socket.emit('movement', data);
+	    });
+
+	    // whenever we receive mouse locations
+	    socket.on('movement', function(data){
+	    	console.log('notified of movement');
+	      $('#data').text('Another user: ' + data.x + ', ' + data.y);
+	    });
+	  });
+	</script>
