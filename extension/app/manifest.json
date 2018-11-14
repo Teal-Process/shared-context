@@ -12,7 +12,7 @@
     "content_scripts": [
 		{
 			"matches": ["<all_urls>"],
-			"js": ["content_scripts.js"]
+			"js": ["main.js"]
 		}
 	],
     "manifest_version": 2
