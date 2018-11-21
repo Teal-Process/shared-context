@@ -1,34 +1,121 @@
 <head>
 	<!-- I believe this is being served up by the npm package automagically --> 
 	<script src="/socket.io/socket.io.js"></script>
-	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+	<!--<script src="https://code.jquery.com/jquery-1.11.1.js"></script>-->
+	<style>
+		body {
+			height: 200vh;
+		}
+
+		.scrollIndicator {
+			height: 12px;
+			width: 12px;
+			background: blue;
+			position: absolute;
+			border-radius: 24px;
+			right: 16px;
+			top: 0;
+			margin: 0;
+		}
+
+		.mouseIndicator {
+			height: 16px;
+			width: 16px;
+			background: blue;
+			opacity: 0.75;
+			position: absolute;
+			top: 0;
+			left: 0;
+			margin: 0;
+		}
+
+	</style>
 </head>
 <body>
 
 	<p id='data'></p>
-
+	<p id='friend-mouse' class='mouseIndicator'></p>
+	<p id='friend-scroll' class='scrollIndicator'></p>
 
 	<script>
-	  $(function () {
-	    var socket = io();
+	  (function() {
+	   let socket = io();
 
-	    // send mouse location to server
-	    $('html').mousemove(function(event){
-	    	let data = {
-	    		x: event.pageX,
-	    		y: event.pageY
-	    	};
+	   let gather = new Gatherer();
 
-	    	console.log(data);
+		document.onscroll = function(e) {
+			gather.updateScroll(e);
+			console.log(e);
+		}
 
+		document.onmousemove = function(e) {
+			gather.updateMouse(e);
+		}
 
-	      socket.emit('movement', data);
-	    });
+		socket.on('movement', function(data) {
+			console.log('a friend is here too!', data);
+		});
+
+		function Gatherer(){
+
+			this.scrollY = 0;
+			this.mouse = {
+				x: 0,
+				y: 0
+			};
+
+			this.updateScroll = function(e){
+				this.scrollY = window.scrollY;
+
+				this.sendData();
+			}
+
+			this.updateMouse = function(e){
+				this.mouse.x = e.pageX;
+				this.mouse.y = e.pageY;
+
+				this.sendData();
+			}
+
+			this.sendData = function(){
+				let view = {
+					width: window.innerWidth,
+					height: window.innerHeight
+				};
+
+				let html = document.getElementsByTagName('html')[0];
+				console.log(html.style.height);
+
+				let data = {
+					mouse: this.mouse,
+					scrollY: this.scrollY,
+					view: view
+				};
+
+				socket.emit('movement', data);
+			}
+		}
 
 	    // whenever we receive mouse locations
 	    socket.on('movement', function(data){
 	    	console.log('notified of movement');
-	      $('#data').text('Another user: ' + data.x + ', ' + data.y);
+	    	let parsed = 'Another user: ' + data.mouse.x + ', ' + data.mouse.y;
+	    	document.getElementById('data').innerText = parsed;
+
+	    	document.getElementById('friend-mouse').style.top = data.mouse.y;
+	    	document.getElementById('friend-mouse').style.left = data.mouse.x;
+
+	    	// TODO
+	    	// – get the page height and showcase the scroll position (friend-scroll) relative to that
+	    	// - on updateScroll, somehow get and update the mouse position, as it's moved down the page but hasn't fired the mousemove event 
+
+	    	document.getElementById('friend-scroll').style.top = data.scrollY;
+
 	    });
-	  });
+	  })();
 	</script>
+
+
+
+
+
