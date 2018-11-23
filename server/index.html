@@ -1,4 +1,10 @@
 <head>
+
+	<!-- TODO
+	- on updateScroll, somehow get and update the mouse position, as it's moved down the page but hasn't fired the mousemove event 
+	-->
+
+
 	<!-- I believe this is being served up by the npm package automagically --> 
 	<script src="/socket.io/socket.io.js"></script>
 	<!--<script src="https://code.jquery.com/jquery-1.11.1.js"></script>-->
@@ -10,12 +16,27 @@
 		.scrollIndicator {
 			height: 12px;
 			width: 12px;
-			background: blue;
-			position: absolute;
+			background: white;
+			position: fixed;
 			border-radius: 24px;
 			right: 16px;
 			top: 0;
 			margin: 0;
+			border: 1px solid blue;
+			transition: background 200ms ease-in-out;
+		}
+
+		.scrollIndicator:hover {
+			background: blue;
+			cursor: pointer;
+		}
+
+		.scrollIndicator--is-active {
+			background: blue;
+		}
+
+		.scrollIndicator--is-active:hover {
+			background: white;
 		}
 
 		.mouseIndicator {
@@ -34,67 +55,29 @@
 <body>
 
 	<p id='data'></p>
-	<p id='friend-mouse' class='mouseIndicator'></p>
-	<p id='friend-scroll' class='scrollIndicator'></p>
+	<div id='friend-mouse' class='mouseIndicator'></div>
+	<div id='friend-scroll' class='scrollIndicator'></div>
 
 	<script>
 	  (function() {
 	   let socket = io();
 
-	   let gather = new Gatherer();
+	   let gather = new Gatherer(socket);
+	   let presenter = new PresentMode();
 
 		document.onscroll = function(e) {
 			gather.updateScroll(e);
-			console.log(e);
 		}
 
 		document.onmousemove = function(e) {
 			gather.updateMouse(e);
 		}
 
-		socket.on('movement', function(data) {
-			console.log('a friend is here too!', data);
+		let scrollId = 'friend-scroll';
+		let friendScroll = document.getElementById(scrollId);
+		friendScroll.addEventListener('click', function(e){
+			presenter.toggleFollow(e.target.id);
 		});
-
-		function Gatherer(){
-
-			this.scrollY = 0;
-			this.mouse = {
-				x: 0,
-				y: 0
-			};
-
-			this.updateScroll = function(e){
-				this.scrollY = window.scrollY;
-
-				this.sendData();
-			}
-
-			this.updateMouse = function(e){
-				this.mouse.x = e.pageX;
-				this.mouse.y = e.pageY;
-
-				this.sendData();
-			}
-
-			this.sendData = function(){
-				let view = {
-					width: window.innerWidth,
-					height: window.innerHeight
-				};
-
-				let html = document.getElementsByTagName('html')[0];
-				console.log(html.style.height);
-
-				let data = {
-					mouse: this.mouse,
-					scrollY: this.scrollY,
-					view: view
-				};
-
-				socket.emit('movement', data);
-			}
-		}
 
 	    // whenever we receive mouse locations
 	    socket.on('movement', function(data){
@@ -105,14 +88,112 @@
 	    	document.getElementById('friend-mouse').style.top = data.mouse.y;
 	    	document.getElementById('friend-mouse').style.left = data.mouse.x;
 
-	    	// TODO
-	    	// – get the page height and showcase the scroll position (friend-scroll) relative to that
-	    	// - on updateScroll, somehow get and update the mouse position, as it's moved down the page but hasn't fired the mousemove event 
-
-	    	document.getElementById('friend-scroll').style.top = data.scrollY;
-
+	    	presenter.setFriendScroll(data.scrollPercentage);
+			let friendIndicator = data.scrollPercentage * window.innerHeight;
+	    	document.getElementById('friend-scroll').style.top = friendIndicator;
 	    });
 	  })();
+
+	  function helperToggleClass(id, activeClass){
+	  	let el = document.getElementById(id);
+
+		if (el.classList.contains(activeClass)) {		
+			el.classList.remove(activeClass);
+		} else {
+			el.classList.add(activeClass);
+		}
+	  }
+
+	  function PresentMode(){
+	  	this.friendScrollPercentage = 0;
+	  	this.following = false;
+
+	  	// scroll to friend position and start following
+	  	this.toggleFollow = function(indicatorId){
+	  		let activeClass = 'scrollIndicator--is-active';
+	  		helperToggleClass(indicatorId, activeClass);
+
+	  		if(this.following){
+	  			this.following = false;
+	  		} else {
+	  			this.scrollToFriend();
+	  			this.following = true;
+	  		}
+	  	}
+
+	  	this.setFriendScroll = function(percentage){
+	  		this.friendScrollPercentage = percentage;
+	  		if(this.following){
+	  			this.scrollToFriend();
+	  		}
+	  	}
+
+	  	this.scrollToFriend = function(){
+	  		let scrollTop = this.friendScrollPercentage * getPageHeight();
+
+	  		// on first click, smooth scroll, otherwise
+	  		// we want to jump to each new scroll point
+	  		let scrollBehavior;
+	  		if(this.following) {
+	  			scrollBehavior = 'auto';
+	  		} else {
+	  			scrollBehavior = 'smooth';
+	  		}
+
+	  		window.scrollTo({
+			  top: scrollTop,
+			  behavior: scrollBehavior
+			});
+	  	}
+	  }
+
+	  function Gatherer(socket){
+
+		this.scrollY = 0;
+		this.mouse = {
+			x: 0,
+			y: 0
+		};
+
+		this.updateScroll = function(e){
+			this.scrollY = window.scrollY;
+			this.sendData();
+		}
+
+		this.updateMouse = function(e){
+			this.mouse.x = e.pageX;
+			this.mouse.y = e.pageY;
+			this.sendData();
+		}
+
+		this.sendData = function(){
+			let view = {
+				width: window.innerWidth,
+				height: window.innerHeight
+			};
+
+			let pageHeight = getPageHeight();
+			let scrollPercentage = this.scrollY / pageHeight;
+
+			let data = {
+				mouse: this.mouse,
+				scrollPercentage: scrollPercentage,
+				view: view
+			};
+
+			socket.emit('movement', data);
+		}
+	}
+
+	  function getPageHeight(){
+		let body = document.body,
+			html = document.documentElement;
+
+		let height = Math.max( body.scrollHeight, body.offsetHeight, 
+		           html.clientHeight, html.scrollHeight, html.offsetHeight );
+
+		return height;
+	  }
 	</script>
 
 
