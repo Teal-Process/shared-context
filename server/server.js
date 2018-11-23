@@ -15,6 +15,13 @@ io.on('connection', function(socket){
 		// sending to all clients except sender
 		socket.broadcast.emit('movement', data);
 	});
+
+	socket.on('connected', function(data){
+		console.log('connected fired');
+
+		// sending to all clients except sender
+		socket.broadcast.emit('connected', data);
+	});
 });
 
 http.listen(3000, function(){
