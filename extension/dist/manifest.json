@@ -2,17 +2,13 @@
     "name": "Shared Context",
     "version": "0.1",
     "description": "A tool to start tangibly playing with the idea of digital proximity",
-    "background": {
-      "scripts": ["background.js"],
-      "persistent": false
-    },
     "permissions": [
 		"activeTab"
     ],
     "content_scripts": [
 		{
 			"matches": ["<all_urls>"],
-			"js": ["main.js"]
+			"js": ["bundle.js"]
 		}
 	],
     "manifest_version": 2
