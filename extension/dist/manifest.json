@@ -11,5 +11,6 @@
 			"js": ["bundle.js"]
 		}
 	],
+    "css": [ "context.css" ],
     "manifest_version": 2
   }
