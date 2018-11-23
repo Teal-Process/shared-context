@@ -1,7 +1,7 @@
 <head>
 
 	<!-- TODO
-	- on updateScroll, somehow get and update the mouse position, as it's moved down the page but hasn't fired the mousemove event 
+	• on updateScroll, somehow get and update the mouse position, as it's moved down the page but hasn't fired the mousemove event 
 	-->
 
 
@@ -40,14 +40,20 @@
 		}
 
 		.mouseIndicator {
-			height: 16px;
-			width: 16px;
-			background: blue;
 			opacity: 0.75;
 			position: absolute;
 			top: 0;
 			left: 0;
 			margin: 0;
+
+			border-left: 6px solid transparent;
+			border-right: 6px solid transparent;
+			border-top: 16px solid blue;
+			transform: rotate(156deg) translateX(-5px);
+		}
+
+		.indicator--is-hidden {
+			display: none;
 		}
 
 	</style>
@@ -55,8 +61,8 @@
 <body>
 
 	<p id='data'></p>
-	<div id='friend-mouse' class='mouseIndicator'></div>
-	<div id='friend-scroll' class='scrollIndicator'></div>
+	<div id='friend-mouse' class='mouseIndicator indicator--is-hidden'></div>
+	<div id='friend-scroll' class='scrollIndicator indicator--is-hidden'></div>
 
 	<script>
 	  (function() {
@@ -64,6 +70,7 @@
 
 	   let gather = new Gatherer(socket);
 	   let presenter = new PresentMode();
+	   let friendPresent = false;
 
 		document.onscroll = function(e) {
 			gather.updateScroll(e);
@@ -82,15 +89,47 @@
 	    // whenever we receive mouse locations
 	    socket.on('movement', function(data){
 	    	console.log('notified of movement');
-	    	let parsed = 'Another user: ' + data.mouse.x + ', ' + data.mouse.y;
-	    	document.getElementById('data').innerText = parsed;
 
-	    	document.getElementById('friend-mouse').style.top = data.mouse.y;
-	    	document.getElementById('friend-mouse').style.left = data.mouse.x;
+	    	if(data.href == window.location.href) {
+	   			if(!friendPresent) {
+	   				// show friend elements 
+		    		let hiddenClass = 'indicator--is-hidden';
+		    		let elementIds = ['friend-mouse', 'friend-scroll'];
+		    		for(let i = 0; i < elementIds.length; i++){
+		    			console.log(i);
+		    			let el = document.getElementById(elementIds[i]);
+	    				if (el.classList.contains(hiddenClass)) {		
+							el.classList.remove(hiddenClass);
+						}
+		    		}
+	   				friendPresent = true;
+	   			}
 
-	    	presenter.setFriendScroll(data.scrollPercentage);
-			let friendIndicator = data.scrollPercentage * window.innerHeight;
-	    	document.getElementById('friend-scroll').style.top = friendIndicator;
+				// move friend mouse position
+				document.getElementById('friend-mouse').style.top = data.mouse.y;
+				document.getElementById('friend-mouse').style.left = data.mouse.x;
+
+				// move friend scroll position
+				presenter.setFriendScroll(data.scrollPercentage);
+				let friendIndicator = data.scrollPercentage * window.innerHeight;
+				document.getElementById('friend-scroll').style.top = friendIndicator;
+
+				// update text
+				// let parsed = 'Another user: ' + data.mouse.x + ', ' + data.mouse.y;
+				// document.getElementById('data').innerText = parsed;
+	    	} else {
+	    		// hide friend elements 
+	    		let hiddenClass = 'indicator--is-hidden';
+	    		let elementIds = ['friend-mouse', 'friend-scroll'];
+	    		for(let i = 0; i < elementIds.length - 1; i++){
+	    			let el = document.getElementById(elementIds[i]);
+    				if (!el.classList.contains(hiddenClass)) {		
+						el.classList.add(hiddenClass);
+					}
+	    		}
+
+	    		friendPresent = false;
+	    	}
 	    });
 	  })();
 
@@ -175,10 +214,13 @@
 			let pageHeight = getPageHeight();
 			let scrollPercentage = this.scrollY / pageHeight;
 
+			let href = window.location.href;
+
 			let data = {
 				mouse: this.mouse,
 				scrollPercentage: scrollPercentage,
-				view: view
+				view: view,
+				href: href
 			};
 
 			socket.emit('movement', data);
