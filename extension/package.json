@@ -5,7 +5,7 @@
   "main": "background.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "./node_modules/.bin/webpack app/content_scripts.js app/main.js && mv dist/main.js app/ && rm -rf dist/"
+    "build": "./node_modules/.bin/webpack app/content_scripts.js dist/bundle.js && mv dist/bundle.js app/ && rm -rf dist/"
   },
   "author": "",
   "license": "ISC",
