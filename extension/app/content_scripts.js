@@ -142,7 +142,12 @@ function Gatherer(socket) {
 	}
 
 	this.updateScroll = function(e){
+		let prevScroll = this.scrollY;
 		this.scrollY = window.scrollY;
+		this.updateMouse({
+			pageX: this.mouse.x,
+			pageY: this.mouse.y + this.scrollY - prevScroll
+		})
 		this.sendData('movement');
 	}
 
