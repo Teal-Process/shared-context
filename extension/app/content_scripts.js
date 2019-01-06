@@ -1,12 +1,12 @@
 // TODO
-// - on updateScroll, somehow get and update the mouse position, as it's moved down the page but hasn't fired the mousemove event 
 // - create function / event firing for disconnection, when a friend leaves the page
 
 const io = require('socket.io-client');
 
-const socket = io('http://localhost:3000');
+const socket = io('http://206.81.11.151:3000');
 let gather = new Gatherer(socket);
 gather.connect();
+
 
 let presenter = new PresentMode();
 let friendsPresent = [];
@@ -37,6 +37,24 @@ function createNewIndicator(uid) {
 		document.body.appendChild(scrollIndicator);
 	}
 }
+
+function destroyIndicator(uid) {
+	// hide friend elements 
+	let hiddenClass = 'indicator--is-hidden';
+	let elementIds = ['friend-mouse' + uid, 'friend-scroll' + uid];
+	for(let i = 0; i < elementIds.length - 1; i++){
+		let el = document.getElementById(elementIds[i]);
+		if (!el.classList.contains(hiddenClass)) {		
+			el.classList.add(hiddenClass);
+		}
+	}
+
+	console.log(friendsPresent);
+	friendsPresent(friendsPresent.indexOf(uid), 1);
+
+	gather.disconnect();
+}
+
 
 function toggleClass(id, activeClass){
 	let el = document.getElementById(id);
@@ -70,6 +88,7 @@ document.onscroll = function(e) {
 }
 
 socket.on('movement', function(data) {
+	console.log('moving')
 	if(data.href == window.location.href) {
 		console.log('ur friend moved', data);
 		console.log(friendsPresent);
@@ -96,29 +115,23 @@ socket.on('movement', function(data) {
 		let friendIndicator = data.scrollPercentage * window.innerHeight;
 		document.getElementById('friend-scroll' + data.uid).style.top = friendIndicator + "px";
 	} else {
+		console.log('umm')
 
 		/* Need to move all of this to some kind of 
 			disconnect function / event firing */
-
-		// hide friend elements 
-		// let hiddenClass = 'indicator--is-hidden';
-		// let elementIds = ['friend-mouse' + data.uid, 'friend-scroll' + data.uid];
-		// for(let i = 0; i < elementIds.length - 1; i++){
-		// 	let el = document.getElementById(elementIds[i]);
-		// 	if (!el.classList.contains(hiddenClass)) {		
-		// 		el.classList.add(hiddenClass);
-		// 	}
-		// }
-
-		// console.log(friendsPresent);
-		// friendsPresent(friendsPresent.indexOf(data.uid),1);
-		// console.log(friendsPresent);
+		// gather.disconnect();
+		
 	}
 });
 
 socket.on('connected', function(data) {
 	console.log('a friend is here!', data);
 	createNewIndicator(data.uid)
+});
+
+socket.on('disconnected', function(data) {
+	console.log('a friend has left!', data);
+	destroyIndicator(data.uid)
 });
 
 function Gatherer(socket) {
@@ -139,6 +152,10 @@ function Gatherer(socket) {
 	this.connect = function(){
 		this.uid = this.getUid();
 		this.sendData('connected');
+	}
+
+	this.disconnect = function(){
+		this.sendData('disconnected');
 	}
 
 	this.updateScroll = function(e){
