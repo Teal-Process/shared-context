@@ -6,6 +6,8 @@ app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
 
+app.use("/public", app.express.static(__dirname + '/public'));
+
 io.on('connection', function(socket){  
 	console.log('a user connected');
 
@@ -21,6 +23,13 @@ io.on('connection', function(socket){
 
 		// sending to all clients except sender
 		socket.broadcast.emit('connected', data);
+	});
+
+	socket.on('disconnected', function(data){
+		console.log('disconnected fired');
+
+		// sending to all clients except sender
+		socket.broadcast.emit('disconnected', data);
 	});
 });
 
