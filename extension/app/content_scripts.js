@@ -3,7 +3,7 @@
 
 const io = require('socket.io-client');
 
-const socket = io('http://206.81.11.151:3000');
+const socket = io('https://shared-context.tealprocess.com');
 let gather = new Gatherer(socket);
 gather.connect();
 
