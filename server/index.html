@@ -8,10 +8,6 @@
 	<!-- I believe this is being served up by the npm package automagically --> 
 	<script src="/socket.io/socket.io.js"></script>
 	<style>
-		body {
-			height: 200vh;
-		}
-
 		.scrollIndicator {
 			height: 12px;
 			width: 12px;
@@ -55,9 +51,45 @@
 			display: none;
 		}
 
+		body {
+			margin: 5vh 5vw;
+		}
+
+		img {
+			max-width: 70vw;
+			position: absolute;
+			bottom: 0;
+			right: 0;
+			z-index: -1;
+		}
 	</style>
 </head>
 <body>
+	<div class="container">
+		<h1>
+			how to surf with your friends
+		</h1>
+
+		<ol>
+			<li>Clone repo into some directory
+			<br>
+			<pre>git clone https://github.com/Teal-Process/shared-context.git</pre></li>
+			<br>
+			<li>Go to Chrome Extensions.
+			<br>
+			<pre>chrome://extensions</pre></li>
+			<br>
+			<li>Click “Load unpacked” in top left.</li>
+			<br>
+			<li>Select distribution directory.
+			<br>
+			<pre>[cloned repo]/extension/dist/</pre></li>
+			<br>
+			<li>Start playing.</li>
+		</ol>
+
+		<img src="./shared-context-logo.png"/>
+	</div>	
 
 	<p id='data'></p>
 	<div id='friend-mouse' class='mouseIndicator indicator--is-hidden'></div>

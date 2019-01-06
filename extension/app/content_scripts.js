@@ -18,7 +18,6 @@ let friendsPresent = [];
 function createNewIndicator(uid) {
 	let friendMouseExists = document.getElementById('friend-mouse' + uid);
 	if (friendMouseExists == null) {
-		console.log('createNewIndicator', uid)
 
 		// add mouse indicator
 		let mouseIndicator = document.createElement("div");
@@ -31,7 +30,6 @@ function createNewIndicator(uid) {
 		scrollIndicator.id = "friend-scroll" + uid;
 		scrollIndicator.className = "scrollIndicator indicator--is-hidden";
 		scrollIndicator.addEventListener('click', function(e){
-			console.log(e.target.id);
 			presenter.toggleFollow(e.target.id);
 		});
 		document.body.appendChild(scrollIndicator);
@@ -48,17 +46,13 @@ function destroyIndicator(uid) {
 			el.classList.add(hiddenClass);
 		}
 	}
-
-	console.log(friendsPresent);
 	friendsPresent(friendsPresent.indexOf(uid), 1);
-
 	gather.disconnect();
 }
 
 
 function toggleClass(id, activeClass){
 	let el = document.getElementById(id);
-	console.log(el, id);
 
 	if (el.classList.contains(activeClass)) {		
 		el.classList.remove(activeClass);
@@ -88,10 +82,7 @@ document.onscroll = function(e) {
 }
 
 socket.on('movement', function(data) {
-	console.log('moving')
 	if(data.href == window.location.href) {
-		console.log('ur friend moved', data);
-		console.log(friendsPresent);
 		if(!friendsPresent.includes(data.uid)) {
 			friendsPresent.push(data.uid);
 			// create and/or show friend elements 
@@ -115,7 +106,7 @@ socket.on('movement', function(data) {
 		let friendIndicator = data.scrollPercentage * window.innerHeight;
 		document.getElementById('friend-scroll' + data.uid).style.top = friendIndicator + "px";
 	} else {
-		console.log('umm')
+		// console.log('umm')
 
 		/* Need to move all of this to some kind of 
 			disconnect function / event firing */
@@ -125,12 +116,12 @@ socket.on('movement', function(data) {
 });
 
 socket.on('connected', function(data) {
-	console.log('a friend is here!', data);
+	// console.log('a friend is here!', data);
 	createNewIndicator(data.uid)
 });
 
 socket.on('disconnected', function(data) {
-	console.log('a friend has left!', data);
+	// console.log('a friend has left!', data);
 	destroyIndicator(data.uid)
 });
 
