@@ -7,7 +7,7 @@ app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
 
-app.use("/public", express.static(__dirname + '/public'));
+app.use(express.static('/public'));
 
 io.on('connection', function(socket){  
 	console.log('a user connected');
