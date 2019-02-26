@@ -24,7 +24,7 @@ function createNewIndicator(uid) {
 		mouseIndicator.id = "friend-mouse" + uid;
 		mouseIndicator.className = "mouseIndicator indicator--is-hidden";
 		document.body.appendChild(mouseIndicator);
-		
+
 		// add scroll indicator
 		let scrollIndicator = document.createElement("div");
 		scrollIndicator.id = "friend-scroll" + uid;
@@ -37,12 +37,12 @@ function createNewIndicator(uid) {
 }
 
 function destroyIndicator(uid) {
-	// hide friend elements 
+	// hide friend elements
 	let hiddenClass = 'indicator--is-hidden';
 	let elementIds = ['friend-mouse' + uid, 'friend-scroll' + uid];
 	for(let i = 0; i < elementIds.length - 1; i++){
 		let el = document.getElementById(elementIds[i]);
-		if (!el.classList.contains(hiddenClass)) {		
+		if (!el.classList.contains(hiddenClass)) {
 			el.classList.add(hiddenClass);
 		}
 	}
@@ -54,7 +54,7 @@ function destroyIndicator(uid) {
 function toggleClass(id, activeClass){
 	let el = document.getElementById(id);
 
-	if (el.classList.contains(activeClass)) {		
+	if (el.classList.contains(activeClass)) {
 		el.classList.remove(activeClass);
 	} else {
 		el.classList.add(activeClass);
@@ -65,7 +65,7 @@ function getPageHeight() {
 	let body = document.body,
 		html = document.documentElement;
 
-	let height = Math.max( body.scrollHeight, body.offsetHeight, 
+	let height = Math.max( body.scrollHeight, body.offsetHeight,
 	           html.clientHeight, html.scrollHeight, html.offsetHeight );
 
 	return height;
@@ -79,19 +79,20 @@ document.onmousemove = function(e) {
 document.onscroll = function(e) {
 	// console.log("We are currently tracking your scroll. More to come soon.");
 	gather.updateScroll(e);
+	console.log(e);
 }
 
 socket.on('movement', function(data) {
 	if(data.href == window.location.href) {
 		if(!friendsPresent.includes(data.uid)) {
 			friendsPresent.push(data.uid);
-			// create and/or show friend elements 
+			// create and/or show friend elements
 			createNewIndicator(data.uid);
 			let hiddenClass = 'indicator--is-hidden';
 			let elementIds = ['friend-mouse' + data.uid, 'friend-scroll' + data.uid];
 			for(let i = 0; i < elementIds.length; i++){
 				let el = document.getElementById(elementIds[i]);
-				if (el.classList.contains(hiddenClass)) {		
+				if (el.classList.contains(hiddenClass)) {
 					el.classList.remove(hiddenClass);
 				}
 			}
@@ -103,16 +104,65 @@ socket.on('movement', function(data) {
 
 		// move friend scroll position
 		presenter.setFriendScroll(data.scrollPercentage);
-		let friendIndicator = data.scrollPercentage * window.innerHeight;
-		document.getElementById('friend-scroll' + data.uid).style.top = friendIndicator + "px";
+		let documentHeight = getPageHeight();
+		let friendPosition = data.scrollPercentage * documentHeight;
+		console.log(friendPosition);
+
+		let windowHeight = window.innerHeight;
+		let windowScrollTop = window.scrollY;
+		let friendIndicator = document.getElementById('friend-scroll' + data.uid);
+		let aboveClass = 'scrollIndicator--is-above';
+		let belowClass = 'scrollIndicator--is-below';
+
+		if(friendPosition < windowScrollTop){
+			// above
+			friendPosition = 0;
+			friendIndicator.style.top = friendPosition + "px";
+
+			if (!friendIndicator.classList.contains(aboveClass)) {
+				friendIndicator.classList.add(aboveClass);
+			}
+
+			if (friendIndicator.classList.contains(belowClass)) {
+				friendIndicator.classList.remove(belowClass);
+			}
+		} else if (friendPosition > windowScrollTop + windowHeight) {
+			// below
+			let sizeOfIndicator = 20;
+			friendPosition = windowScrollTop + windowHeight - sizeOfIndicator;
+			friendIndicator.style.top = friendPosition + "px";
+
+			if (friendIndicator.classList.contains(aboveClass)) {
+				friendIndicator.classList.remove(aboveClass);
+			}
+
+			if (!friendIndicator.classList.contains(belowClass)) {
+				friendIndicator.classList.add(belowClass);
+			}
+		} else {
+			// inside
+			friendIndicator.style.top = friendPosition + "px";
+
+			if (friendIndicator.classList.contains(aboveClass)) {
+				friendIndicator.classList.remove(aboveClass);
+			}
+
+			if (friendIndicator.classList.contains(belowClass)) {
+				friendIndicator.classList.remove(belowClass);
+			}
+		}
+		// get current window position
+		// if friendIndicator is inside, display as normal circle
+		// if it's outside, set correct class and stick to edge
 	} else {
 		// console.log('umm')
 
-		/* Need to move all of this to some kind of 
+		/* Need to move all of this to some kind of
 			disconnect function / event firing */
 		// gather.disconnect();
-		
+
 	}
+
 });
 
 socket.on('connected', function(data) {
@@ -225,10 +275,8 @@ function PresentMode(){
   		}
 
   		window.scrollTo({
-		  top: scrollTop,
-		  behavior: scrollBehavior
-		});
+			  top: scrollTop,
+			  behavior: scrollBehavior
+			});
   	}
 }
-
-

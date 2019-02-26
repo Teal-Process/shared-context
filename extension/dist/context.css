@@ -25,6 +25,12 @@
 	background: white;
 }
 
+.scrollIndicator--is-above {
+	border-left: 6px solid transparent;
+	border-right: 6px solid transparent;
+	border-top: 16px solid blue;
+}
+
 .mouseIndicator {
 	opacity: 0.75;
 	position: absolute;
