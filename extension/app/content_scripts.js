@@ -1,6 +1,9 @@
 // TODO
 // - create function / event firing for disconnection, when a friend leaves the page
 
+import './manifest.json'
+import './context.css'
+
 const io = require('socket.io-client');
 
 const socket = io('https://shared-context.tealprocess.com');
@@ -10,6 +13,7 @@ gather.connect();
 
 let presenter = new PresentMode();
 let friendsPresent = [];
+
 
 // will also need to find a way to get all users already connected their own indicator
 // let indicator = new Indicator();

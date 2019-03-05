@@ -19,10 +19,22 @@ module.exports = {
 	],
 	module: {
         rules: [
-            { 
-				test: /\.json$/,
-				loader: "file?name=[path][name].[ext]"
-            }
+            {
+			    type: 'javascript/auto',
+			    test: /\.json$/,
+			    use: [
+			        {
+			          loader: 'file-loader',
+			          options: {
+			              name: "./[name].[ext]"
+			          }
+			        }
+			    ]
+			},
+		    {
+				test: /\.css$/,
+				use: ['style-loader', 'css-loader']
+		    }
         ]
     }
 }
