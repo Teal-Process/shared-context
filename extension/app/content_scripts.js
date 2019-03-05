@@ -10,7 +10,6 @@ gather.connect();
 
 let presenter = new PresentMode();
 let friendsPresent = [];
-console.log('herereeee')
 
 // will also need to find a way to get all users already connected their own indicator
 // let indicator = new Indicator();

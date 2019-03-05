@@ -5,7 +5,7 @@
   "main": "background.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "./node_modules/.bin/webpack app/content_scripts.js dist/bundle.js"
+    "watch": "NODE_ENV=development webpack --config webpack.config.js"
   },
   "author": "",
   "license": "ISC",
